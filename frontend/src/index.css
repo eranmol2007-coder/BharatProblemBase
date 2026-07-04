@@ -1,0 +1,10 @@
+@import url('https://db.onlinewebfonts.com/c/e66905e07608167a84e6ad52f638c3c6?family=Helvetica+Now+Var');
+@import "tailwindcss";
+
+* {
+  font-family: 'Helvetica Now Var', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+body {
+  background: #0a0a0f;
+}

@@ -1,0 +1,3 @@
+@echo off
+echo Opening BharatProblemBase...
+start http://localhost:8000
