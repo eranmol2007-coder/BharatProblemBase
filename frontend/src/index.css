@@ -5,6 +5,18 @@
   font-family: 'Helvetica Now Var', 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
+html {
+  overflow-x: hidden;
+}
+
 body {
-  background: #0a0a0f;
+  background: #ffffff;
+  color: #1e293b;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+  overflow-x: hidden;
 }

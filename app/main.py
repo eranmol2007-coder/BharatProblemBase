@@ -9,6 +9,7 @@ from fastapi.responses import FileResponse
 
 from app.database import init_db
 from app.routers.problems import router as problems_router
+from app.routers.auth import router as auth_router
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -52,6 +53,7 @@ app.add_middleware(
 )
 
 app.include_router(problems_router)
+app.include_router(auth_router)
 
 
 @app.get("/api/health")

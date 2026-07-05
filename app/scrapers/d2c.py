@@ -1,10 +1,13 @@
 import logging
-import re
+import time
 
 from app.scrapers.base import BaseScraper, ScrapedProblem
 from app.ml.classifier import classify_domain, extract_tags, classify_difficulty
 
 logger = logging.getLogger(__name__)
+
+MAX_PAGES = 50
+PAGE_SIZE = 100
 
 
 class D2CScraper(BaseScraper):
@@ -82,39 +85,57 @@ class D2CScraper(BaseScraper):
 
     def _scrape_via_api(self) -> list[ScrapedProblem]:
         problems = []
-        api_urls = [
-            "https://dare2compete.com/api/public/opportunity/search?type=hackathons&page=1&size=20",
+        seen = set()
+        api_base_urls = [
+            "https://dare2compete.com/api/public/opportunity/search?type=hackathons",
+            "https://dare2compete.com/api/public/opportunity/search?type=competitions",
         ]
 
-        for api_url in api_urls:
-            try:
-                data = self.fetch_json(api_url)
-                if not data:
-                    continue
+        for base_url in api_base_urls:
+            for page in range(1, MAX_PAGES + 1):
+                try:
+                    url = f"{base_url}&page={page}&size={PAGE_SIZE}"
+                    data = self.fetch_json(url)
+                    if not data:
+                        break
 
-                items = data if isinstance(data, list) else data.get("data", []) or data.get("results", [])
-                for item in items:
-                    title = item.get("name", "") or item.get("title", "")
-                    description = item.get("description", "") or item.get("short_desc", "")
-                    href = item.get("url", "") or item.get("slug", "")
-                    organization = item.get("organization", "") or item.get("organizer", "")
+                    items = data if isinstance(data, list) else data.get("data", []) or data.get("results", [])
+                    if not items:
+                        break
 
-                    if not title:
-                        continue
+                    new_count = 0
+                    for item in items:
+                        title = item.get("name", "") or item.get("title", "")
+                        description = item.get("description", "") or item.get("short_desc", "")
+                        href = item.get("url", "") or item.get("slug", "")
+                        organization = item.get("organization", "") or item.get("organizer", "")
 
-                    problems.append(ScrapedProblem(
-                        title=title,
-                        description=description or f"Competition on D2C platform.",
-                        source_platform=self.platform_name,
-                        source_link=href if href.startswith("http") else f"https://dare2compete.com/{href}",
-                        organization=organization,
-                        domain=classify_domain(title, description),
-                        tags=extract_tags(title, description),
-                        difficulty=classify_difficulty(title, description),
-                    ))
-            except Exception as e:
-                logger.warning(f"D2C API failed: {e}")
-                continue
+                        if not title or title in seen:
+                            continue
+                        seen.add(title)
+                        new_count += 1
+
+                        problems.append(ScrapedProblem(
+                            title=title,
+                            description=description or f"Competition on D2C platform.",
+                            source_platform=self.platform_name,
+                            source_link=href if href.startswith("http") else f"https://dare2compete.com/{href}",
+                            organization=organization,
+                            domain=classify_domain(title, description),
+                            tags=extract_tags(title, description),
+                            difficulty=classify_difficulty(title, description),
+                        ))
+
+                    if new_count == 0:
+                        break
+
+                    if len(items) < PAGE_SIZE:
+                        break
+
+                    time.sleep(0.5)
+                except Exception as e:
+                    logger.warning(f"D2C API page {page} failed: {e}")
+                    break
 
         logger.info(f"D2C: Extracted {len(problems)} opportunities")
         return problems

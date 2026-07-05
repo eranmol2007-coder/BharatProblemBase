@@ -1,10 +1,13 @@
 import logging
-import re
+import time
 
 from app.scrapers.base import BaseScraper, ScrapedProblem
 from app.ml.classifier import classify_domain, extract_tags, classify_difficulty
 
 logger = logging.getLogger(__name__)
+
+MAX_PAGES = 50
+PER_PAGE = 100
 
 
 class UnstopScraper(BaseScraper):
@@ -78,38 +81,55 @@ class UnstopScraper(BaseScraper):
 
     def _scrape_via_api(self) -> list[ScrapedProblem]:
         problems = []
-        api_urls = [
-            "https://unstop.com/api/public/opportunity/search?opportunity_type=hackathons&page=1&per_page=20",
-            "https://unstop.com/api/public/opportunity/search?opportunity_type=competitions&page=1&per_page=20",
+        seen = set()
+        api_base_urls = [
+            ("https://unstop.com/api/public/opportunity/search?opportunity_type=hackathons", "hackathons"),
+            ("https://unstop.com/api/public/opportunity/search?opportunity_type=competitions", "competitions"),
         ]
 
-        for api_url in api_urls:
-            try:
-                data = self.fetch_json(api_url)
-                if not data:
-                    continue
+        for base_url, category in api_base_urls:
+            for page in range(1, MAX_PAGES + 1):
+                try:
+                    url = f"{base_url}&page={page}&per_page={PER_PAGE}"
+                    data = self.fetch_json(url)
+                    if not data:
+                        break
 
-                items = data if isinstance(data, list) else data.get("data", [])
-                for item in items:
-                    title = item.get("name", "") or item.get("title", "")
-                    description = item.get("description", "") or item.get("short_description", "")
-                    href = item.get("url", "") or item.get("seo_url", "")
+                    items = data if isinstance(data, list) else data.get("data", [])
+                    if not items:
+                        break
 
-                    if not title:
-                        continue
+                    new_count = 0
+                    for item in items:
+                        title = item.get("name", "") or item.get("title", "")
+                        description = item.get("description", "") or item.get("short_description", "")
+                        href = item.get("url", "") or item.get("seo_url", "")
 
-                    problems.append(ScrapedProblem(
-                        title=title,
-                        description=description or f"Competition on Unstop platform.",
-                        source_platform=self.platform_name,
-                        source_link=href if href.startswith("http") else f"https://unstop.com{href}",
-                        domain=classify_domain(title, description),
-                        tags=extract_tags(title, description),
-                        difficulty=classify_difficulty(title, description),
-                    ))
-            except Exception as e:
-                logger.warning(f"Unstop API failed: {e}")
-                continue
+                        if not title or title in seen:
+                            continue
+                        seen.add(title)
+                        new_count += 1
+
+                        problems.append(ScrapedProblem(
+                            title=title,
+                            description=description or f"Competition on Unstop platform.",
+                            source_platform=self.platform_name,
+                            source_link=href if href.startswith("http") else f"https://unstop.com{href}",
+                            domain=classify_domain(title, description),
+                            tags=extract_tags(title, description),
+                            difficulty=classify_difficulty(title, description),
+                        ))
+
+                    if new_count == 0:
+                        break
+
+                    if len(items) < PER_PAGE:
+                        break
+
+                    time.sleep(0.5)
+                except Exception as e:
+                    logger.warning(f"Unstop API page {page} failed: {e}")
+                    break
 
         logger.info(f"Unstop: Extracted {len(problems)} opportunities")
         return problems

@@ -14,6 +14,7 @@ export default function Problems() {
   const [domains, setDomains] = useState([])
   const [platforms, setPlatforms] = useState([])
   const [loading, setLoading] = useState(true)
+  const [searchLoading, setSearchLoading] = useState(false)
   const [scraping, setScraping] = useState(false)
   const [error, setError] = useState(null)
 
@@ -27,7 +28,9 @@ export default function Problems() {
   })
 
   const fetchData = useCallback(async () => {
-    setLoading(true)
+    const isSearch = filters.search && !loading
+    if (isSearch) setSearchLoading(true)
+    else setLoading(true)
     setError(null)
     try {
       const params = { ...filters }
@@ -46,6 +49,7 @@ export default function Problems() {
       setError(e.message?.includes('Failed to fetch') ? 'Cannot connect to server.' : `Failed to load: ${e.message}`)
     } finally {
       setLoading(false)
+      setSearchLoading(false)
     }
   }, [filters])
 
@@ -54,7 +58,7 @@ export default function Problems() {
     const q = new URLSearchParams()
     Object.entries(filters).forEach(([k, v]) => { if (v) q.set(k, v) })
     setSearchParams(q, { replace: true })
-  }, [fetchData, setSearchParams])
+  }, [fetchData, setSearchParams, filters])
 
   const handleScrape = async () => {
     setScraping(true)
@@ -72,16 +76,16 @@ export default function Problems() {
   const goPage = (p) => setFilters(prev => ({ ...prev, page: Math.max(1, Math.min(p, totalPages)) }))
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 bg-white/90 backdrop-blur-sm rounded-3xl mt-4 mb-4 shadow-[0_8px_40px_-12px_rgba(0,0,0,0.08)]">
       <div className="flex items-start justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Problem Statements</h1>
-          <p className="text-sm text-slate-400 mt-1">{total.toLocaleString()} problems · {platforms.length} platforms</p>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Problem Statements</h1>
+          <p className="text-sm text-slate-500 mt-1">{total.toLocaleString()} problems · {platforms.length} platforms</p>
         </div>
         <button
           onClick={handleScrape}
           disabled={scraping}
-          className="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors disabled:opacity-50"
+          className="flex items-center gap-2 bg-cyan-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-cyan-600 transition-colors disabled:opacity-50 shadow-sm"
         >
           <RefreshCw className={`w-4 h-4 ${scraping ? 'animate-spin' : ''}`} />
           {scraping ? 'Scraping...' : 'Scrape'}
@@ -94,7 +98,7 @@ export default function Problems() {
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mt-4 bg-red-500/20 border border-red-500/30 text-red-300 px-4 py-3 rounded-lg text-sm"
+          className="mt-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm"
         >
           {error}
         </motion.div>
@@ -111,7 +115,15 @@ export default function Problems() {
             <p className="text-sm mt-1">Try adjusting your filters</p>
           </div>
         ) : (
-          problems.map(p => <ProblemCard key={p.id} problem={p} />)
+          <>
+            {searchLoading && (
+              <div className="flex items-center justify-center py-2">
+                <Loader2 className="w-4 h-4 animate-spin text-cyan-500 mr-2" />
+                <span className="text-xs text-slate-400">Searching...</span>
+              </div>
+            )}
+            {problems.map(p => <ProblemCard key={p.id} problem={p} />)}
+          </>
         )}
       </div>
 
@@ -120,17 +132,17 @@ export default function Problems() {
           <button
             onClick={() => goPage(filters.page - 1)}
             disabled={filters.page <= 1}
-            className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-slate-300 bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-lg hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm"
           >
             <ChevronLeft className="w-4 h-4" /> Previous
           </button>
-          <span className="text-sm text-slate-400">
-            Page <span className="font-medium text-white">{filters.page}</span> of {totalPages}
+          <span className="text-sm text-slate-500">
+            Page <span className="font-medium text-slate-900">{filters.page}</span> of {totalPages}
           </span>
           <button
             onClick={() => goPage(filters.page + 1)}
             disabled={filters.page >= totalPages}
-            className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-slate-300 bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-lg hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm"
           >
             Next <ChevronRight className="w-4 h-4" />
           </button>

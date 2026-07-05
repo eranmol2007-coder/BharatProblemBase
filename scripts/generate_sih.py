@@ -1,7 +1,6 @@
 import json
 import random
 import os
-import itertools
 import sys
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -253,31 +252,45 @@ def generate_tags(topic, domain):
     extra = random.sample(["ai", "ml", "iot", "blockchain", "mobile", "cloud", "analytics", "automation", "security", "accessibility", "sustainability", "digital-transformation"], 2)
     return base_tags + extra
 
-target = 15000
+target = 10000
+open_ratio = 0.45  # ~4500 open out of 10000
 
-with open(SIH_FILE, "r", encoding="utf-8") as f:
-    existing = json.load(f)
+# Load existing titles from database to avoid duplicates
+import sqlite3
+db_path = os.path.join(DATA_DIR, "bharatproblembase.db")
+existing_titles = set()
+try:
+    conn = sqlite3.connect(db_path)
+    cursor = conn.execute("SELECT title FROM problem_statements")
+    for row in cursor:
+        existing_titles.add(row[0])
+    conn.close()
+except Exception:
+    pass
 
-print(f"Existing problems: {len(existing)}")
-
-needed = target - len(existing)
-if needed <= 0:
-    print(f"Already have {len(existing)} problems, no need to generate more.")
-    sys.exit(0)
-
-print(f"Generating {needed} new SIH problem statements...")
+print(f"Existing titles in DB: {len(existing_titles)}")
+print(f"Generating {target} SIH problem statements (open ratio: {open_ratio:.0%})...")
 
 generated = []
-for i in range(needed):
+title_counter = 0
+for i in range(target):
     domain = random.choice(domains)
     org = random.choice(organizations)
     year = random.choice(years)
-    title = generate_title()
-    desc = generate_description()
     topic = random.choice(topics)
-    tags = generate_tags(topic, domain)
     difficulty = random.choice(difficulties)
     category = random.choice(categories)
+    is_open = random.random() < open_ratio
+
+    # Generate unique title
+    title = generate_title()
+    while title in existing_titles:
+        title_counter += 1
+        title = generate_title() + f" #{title_counter}"
+    existing_titles.add(title)
+
+    desc = generate_description()
+    tags = generate_tags(topic, domain)
 
     problem = {
         "title": title,
@@ -290,17 +303,18 @@ for i in range(needed):
         "source_link": f"https://www.sih.gov.in/sih{year}",
         "tags": list(set(tags[:5])),
         "difficulty": difficulty,
-        "is_open": False,
+        "is_open": is_open,
     }
     generated.append(problem)
 
     if (i + 1) % 1000 == 0:
-        print(f"  Generated {i + 1}/{needed}...")
+        open_count = sum(1 for p in generated if p["is_open"])
+        print(f"  Generated {i + 1}/{target} (open: {open_count})...")
 
-all_problems = existing + generated
+open_count = sum(1 for p in generated if p["is_open"])
+print(f"\nDone! Total: {len(generated)}, Open: {open_count}, Closed: {len(generated) - open_count}")
 
 with open(SIH_FILE, "w", encoding="utf-8") as f:
-    json.dump(all_problems, f, indent=2, ensure_ascii=False)
+    json.dump(generated, f, indent=2, ensure_ascii=False)
 
-print(f"\nDone! Total problems in file: {len(all_problems)}")
-print(f"Added {len(generated)} new SIH problem statements.")
+print(f"Saved to {SIH_FILE}")

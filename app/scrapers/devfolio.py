@@ -1,5 +1,4 @@
 import logging
-import re
 
 from app.scrapers.base import BaseScraper, ScrapedProblem
 from app.ml.classifier import classify_domain, extract_tags, classify_difficulty

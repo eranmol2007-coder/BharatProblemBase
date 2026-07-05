@@ -67,15 +67,11 @@ class BaseScraper(ABC):
             logger.error(f"Failed to fetch {url}: {e}")
             return None
 
-    def fetch_json(self, url: str) -> Optional[dict]:
+    def fetch_json(self, url: str) -> Optional[dict | list]:
         try:
             resp = self.session.get(url, timeout=30)
             resp.raise_for_status()
-            data = resp.json()
-            if isinstance(data, dict):
-                return data
-            logger.warning(f"JSON response from {url} is not a dict (type={type(data).__name__})")
-            return None
+            return resp.json()
         except Exception as e:
             logger.error(f"Failed to fetch JSON from {url}: {e}")
             return None

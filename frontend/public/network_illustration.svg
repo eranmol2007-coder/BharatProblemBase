@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300" fill="none">
+  <!-- Background -->
+  <rect width="400" height="300" rx="20" fill="#ecfeff"/>
+  
+  <!-- Network nodes -->
+  <circle cx="200" cy="80" r="25" fill="#06b6d4" opacity="0.2"/>
+  <circle cx="200" cy="80" r="12" fill="#06b6d4"/>
+  <circle cx="200" cy="80" r="5" fill="white"/>
+  
+  <circle cx="100" cy="150" r="20" fill="#0891b2" opacity="0.2"/>
+  <circle cx="100" cy="150" r="10" fill="#0891b2"/>
+  <circle cx="100" cy="150" r="4" fill="white"/>
+  
+  <circle cx="300" cy="150" r="20" fill="#0891b2" opacity="0.2"/>
+  <circle cx="300" cy="150" r="10" fill="#0891b2"/>
+  <circle cx="300" cy="150" r="4" fill="white"/>
+  
+  <circle cx="150" cy="220" r="18" fill="#0e7490" opacity="0.2"/>
+  <circle cx="150" cy="220" r="9" fill="#0e7490"/>
+  <circle cx="150" cy="220" r="3.5" fill="white"/>
+  
+  <circle cx="250" cy="220" r="18" fill="#0e7490" opacity="0.2"/>
+  <circle cx="250" cy="220" r="9" fill="#0e7490"/>
+  <circle cx="250" cy="220" r="3.5" fill="white"/>
+  
+  <!-- Connections -->
+  <line x1="200" y1="80" x2="100" y2="150" stroke="#06b6d4" stroke-width="2" opacity="0.4"/>
+  <line x1="200" y1="80" x2="300" y2="150" stroke="#06b6d4" stroke-width="2" opacity="0.4"/>
+  <line x1="100" y1="150" x2="150" y2="220" stroke="#0891b2" stroke-width="1.5" opacity="0.3"/>
+  <line x1="300" y1="150" x2="250" y2="220" stroke="#0891b2" stroke-width="1.5" opacity="0.3"/>
+  <line x1="150" y1="220" x2="250" y2="220" stroke="#0e7490" stroke-width="1.5" opacity="0.3"/>
+  
+  <!-- Data flow dots -->
+  <circle cx="150" cy="115" r="3" fill="#22d3ee">
+    <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="250" cy="115" r="3" fill="#22d3ee">
+    <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite" begin="0.5s"/>
+  </circle>
+  <circle cx="125" cy="185" r="2.5" fill="#67e8f9">
+    <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite" begin="1s"/>
+  </circle>
+  <circle cx="275" cy="185" r="2.5" fill="#67e8f9">
+    <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite" begin="1.5s"/>
+  </circle>
+  
+  <!-- Labels -->
+  <text x="200" y="55" text-anchor="middle" fill="#0e7490" font-family="sans-serif" font-size="11" font-weight="600">Central Hub</text>
+  <text x="100" y="185" text-anchor="middle" fill="#0891b2" font-family="sans-serif" font-size="9">SIH</text>
+  <text x="300" y="185" text-anchor="middle" fill="#0891b2" font-family="sans-serif" font-size="9">Unstop</text>
+  <text x="150" y="255" text-anchor="middle" fill="#0e7490" font-family="sans-serif" font-size="9">Devfolio</text>
+  <text x="250" y="255" text-anchor="middle" fill="#0e7490" font-family="sans-serif" font-size="9">HackerEarth</text>
+</svg>

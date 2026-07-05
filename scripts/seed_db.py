@@ -25,8 +25,16 @@ def _load_json_file(filepath: str, db, label: str) -> tuple[int, int]:
     if not os.path.isfile(filepath):
         return 0, 0
 
-    with open(filepath, "r", encoding="utf-8") as f:
-        problems = json.load(f)
+    try:
+        with open(filepath, "r", encoding="utf-8") as f:
+            problems = json.load(f)
+    except (json.JSONDecodeError, ValueError):
+        print(f"{label}: Skipped (empty or invalid file)")
+        return 0, 0
+
+    if not problems:
+        print(f"{label}: Skipped (empty)")
+        return 0, 0
 
     inserted = 0
     skipped = 0

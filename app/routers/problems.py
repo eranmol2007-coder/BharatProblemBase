@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, BackgroundTasks
 from sqlalchemy.orm import Session
-from sqlalchemy import or_, cast, String
+from sqlalchemy import or_, case
 from typing import Optional
 
 from app.database import get_db
@@ -16,10 +16,36 @@ from app.scrapers.orchestrator import ScraperOrchestrator
 router = APIRouter(prefix="/api/problems", tags=["problems"])
 
 
+@router.get("/suggest", response_model=list[dict])
+def suggest_problems(
+    q: str = Query("", min_length=0),
+    db: Session = Depends(get_db),
+):
+    if not q:
+        return []
+    search_term = f"%{q}%"
+    results = (
+        db.query(ProblemStatement.id, ProblemStatement.title, ProblemStatement.domain)
+        .filter(ProblemStatement.title.ilike(search_term))
+        .limit(6)
+        .all()
+    )
+    return [{"id": r.id, "title": r.title, "domain": r.domain or ""} for r in results]
+
+
+@router.get("/all-titles", response_model=list[dict])
+def get_all_titles(db: Session = Depends(get_db)):
+    results = (
+        db.query(ProblemStatement.id, ProblemStatement.title, ProblemStatement.domain)
+        .all()
+    )
+    return [{"id": r.id, "title": r.title, "domain": r.domain or ""} for r in results]
+
+
 @router.get("", response_model=PaginatedResponse)
 def list_problems(
     page: int = Query(1, ge=1),
-    page_size: int = Query(20, ge=1, le=100),
+    page_size: int = Query(20, ge=1, le=10000),
     search: Optional[str] = None,
     domain: Optional[str] = None,
     platform: Optional[str] = None,
@@ -40,7 +66,6 @@ def list_problems(
             or_(
                 ProblemStatement.title.ilike(search_term),
                 ProblemStatement.description.ilike(search_term),
-                cast(ProblemStatement.tags, String).ilike(search_term),
                 ProblemStatement.organization.ilike(search_term),
                 ProblemStatement.domain.ilike(search_term),
             )
@@ -63,11 +88,22 @@ def list_problems(
 
     total = query.count()
 
-    sort_col = getattr(ProblemStatement, sort_by, ProblemStatement.created_at)
-    if sort_order == "desc":
-        query = query.order_by(sort_col.desc())
+    if search:
+        title_match = case(
+            (ProblemStatement.title.ilike(f"%{search}%"), 0),
+            else_=1,
+        )
+        desc_match = case(
+            (ProblemStatement.description.ilike(f"%{search}%"), 0),
+            else_=1,
+        )
+        query = query.order_by(title_match, desc_match, ProblemStatement.created_at.desc())
     else:
-        query = query.order_by(sort_col.asc())
+        sort_col = getattr(ProblemStatement, sort_by, ProblemStatement.created_at)
+        if sort_order == "desc":
+            query = query.order_by(sort_col.desc())
+        else:
+            query = query.order_by(sort_col.asc())
 
     items = query.offset((page - 1) * page_size).limit(page_size).all()
 
@@ -187,6 +223,9 @@ def delete_problem(problem_id: int, db: Session = Depends(get_db)):
 
 @router.post("/scrape", response_model=dict)
 def trigger_scrape(background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
-    orchestrator = ScraperOrchestrator()
-    results = orchestrator.scrape_all(db=db)
-    return results
+    def _run_scrape():
+        orchestrator = ScraperOrchestrator()
+        orchestrator.scrape_all(db=db)
+
+    background_tasks.add_task(_run_scrape)
+    return {"status": "scrape_started", "message": "Scraping is running in the background"}

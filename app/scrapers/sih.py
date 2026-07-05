@@ -2,7 +2,7 @@ import logging
 import os
 from typing import Optional
 
-from bs4 import BeautifulSoup, Tag
+from bs4 import BeautifulSoup
 from app.scrapers.base import BaseScraper, ScrapedProblem
 
 logger = logging.getLogger(__name__)
@@ -77,7 +77,7 @@ class SIHScraper(BaseScraper):
             return None
 
         if description.startswith("Problem Statement"):
-            description = description
+            description = description[len("Problem Statement"):].strip()
 
         description = self._clean_description(description)
         title = self._clean_title(title)
