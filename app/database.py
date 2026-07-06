@@ -8,7 +8,11 @@ try:
 except ImportError:
     pass
 
+IS_VERCEL = os.environ.get("VERCEL") == "1"
 DATABASE_URL = os.getenv("DATABASE_URL")
+
+if IS_VERCEL and not DATABASE_URL:
+    raise RuntimeError("DATABASE_URL environment variable is required on Vercel")
 
 if not DATABASE_URL:
     db_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
@@ -19,7 +23,13 @@ connect_args = {}
 if DATABASE_URL.startswith("sqlite"):
     connect_args["check_same_thread"] = False
 
-engine = create_engine(DATABASE_URL, pool_pre_ping=True, connect_args=connect_args)
+engine = create_engine(
+    DATABASE_URL,
+    pool_pre_ping=True,
+    connect_args=connect_args,
+    pool_size=5 if not DATABASE_URL.startswith("sqlite") else None,
+    max_overflow=10 if not DATABASE_URL.startswith("sqlite") else None,
+)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 

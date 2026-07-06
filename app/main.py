@@ -14,10 +14,14 @@ from app.routers.auth import router as auth_router
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+IS_VERCEL = os.environ.get("VERCEL") == "1"
+
 FRONTEND_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "frontend", "dist")
 
 
 def _ensure_data():
+    if IS_VERCEL:
+        return
     try:
         from scripts.seed_db import ensure_seed_data
         inserted = ensure_seed_data(min_count=10)
@@ -61,7 +65,7 @@ def health():
     return {"status": "ok", "service": "BharatProblemBase"}
 
 
-if os.path.isdir(FRONTEND_DIR):
+if not IS_VERCEL and os.path.isdir(FRONTEND_DIR):
     app.mount("/assets", StaticFiles(directory=os.path.join(FRONTEND_DIR, "assets")), name="assets")
 
     @app.get("/{full_path:path}")
