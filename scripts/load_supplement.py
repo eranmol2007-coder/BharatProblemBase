@@ -35,7 +35,7 @@ def load_supplement():
             skipped = 0
 
             for i, item in enumerate(problems):
-                exists = db.query(ProblemStatement).filter(ProblemStatement.title == item["title"]).first()
+                exists = db.query(ProblemStatement).filter(ProblemStatement.title == item["title"], ProblemStatement.source_platform == item.get("source_platform", "general")).first()
                 if exists:
                     skipped += 1
                     continue

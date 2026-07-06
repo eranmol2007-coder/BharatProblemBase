@@ -15,6 +15,9 @@ SEED_FILE = os.path.join(DATA_DIR, "seed_problems.json")
 SIH_FILE = os.path.join(DATA_DIR, "sih_problems.json")
 PLATFORM_FILE = os.path.join(DATA_DIR, "platform_problems.json")
 MORE_PLATFORMS_FILE = os.path.join(DATA_DIR, "more_platforms.json")
+CURATED_FILE = os.path.join(DATA_DIR, "curated_problems.json")
+SUPPLEMENT_FILE = os.path.join(DATA_DIR, "supplement_problems.json")
+SUPPLEMENT2_FILE = os.path.join(DATA_DIR, "supplement2_problems.json")
 
 
 def create_tables():
@@ -42,7 +45,7 @@ def _load_json_file(filepath: str, db, label: str) -> tuple[int, int]:
     for item in problems:
         exists = (
             db.query(ProblemStatement)
-            .filter(ProblemStatement.title == item["title"])
+            .filter(ProblemStatement.title == item["title"], ProblemStatement.source_platform == item.get("source_platform", "general"))
             .first()
         )
         if exists:
@@ -62,7 +65,7 @@ def load_seed_data():
         total_inserted = 0
         total_skipped = 0
 
-        for filepath, label in [(SEED_FILE, "Seed"), (SIH_FILE, "SIH"), (PLATFORM_FILE, "Platform"), (MORE_PLATFORMS_FILE, "More")]:
+        for filepath, label in [(SEED_FILE, "Seed"), (SIH_FILE, "SIH"), (PLATFORM_FILE, "Platform"), (MORE_PLATFORMS_FILE, "More"), (CURATED_FILE, "Curated"), (SUPPLEMENT_FILE, "Supplement"), (SUPPLEMENT2_FILE, "Supplement2")]:
             ins, skp = _load_json_file(filepath, db, label)
             total_inserted += ins
             total_skipped += skp
