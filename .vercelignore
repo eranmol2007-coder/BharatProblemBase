@@ -1,0 +1,37 @@
+# Python virtual environments
+.venv
+.venv-1
+venv
+env
+
+# Node.js modules
+node_modules
+frontend/node_modules
+
+# Git directory
+.git
+
+# Python cache
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+
+# Environment files (secrets should be in Vercel dashboard)
+.env
+
+# Development artifacts
+*.log
+.DS_Store
+Thumbs.db
+
+# Scripts and tests
+scripts
+tests
+
+# Documentation
+*.md
+!README.md
+
+# Kiro specs
+.kiro

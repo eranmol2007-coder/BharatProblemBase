@@ -16,7 +16,8 @@ logger = logging.getLogger(__name__)
 
 IS_VERCEL = os.environ.get("VERCEL") == "1"
 
-FRONTEND_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "frontend", "dist")
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+FRONTEND_DIR = os.path.join(PROJECT_ROOT, "frontend", "dist")
 
 
 def _ensure_data():
