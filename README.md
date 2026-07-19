@@ -34,7 +34,7 @@ A full-stack hackathon problem statement aggregator built with FastAPI and React
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/BharatProblemBase.git
+git clone https://github.com/eranmol2007-coder/BharatProblemBase.git
 cd BharatProblemBase
 
 # Install Python dependencies
@@ -62,7 +62,7 @@ cd frontend && npm run build && cd ..
 uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 
-Open [http://localhost:8000](http://localhost:8000)
+Open [https://bharat-problem-base.vercel.app](https://bharat-problem-base.vercel.app)
 
 ## Project Structure
 
