@@ -17,13 +17,19 @@ __pycache__
 *.pyo
 *.pyd
 
-# Environment files (secrets should be in Vercel dashboard)
+# Environment files
 .env
 
 # Development artifacts
 *.log
 .DS_Store
 Thumbs.db
+
+# Frontend build (rebuilt during deploy)
+frontend/dist
+
+# Large data files (not needed on Vercel)
+data/
 
 # Scripts and tests
 scripts
@@ -33,5 +39,9 @@ tests
 *.md
 !README.md
 
+# Download Scheduler (separate project)
+Download Scheduler
+
 # Kiro specs
 .kiro
+.github
