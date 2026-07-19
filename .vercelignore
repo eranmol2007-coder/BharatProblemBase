@@ -25,15 +25,12 @@ __pycache__
 .DS_Store
 Thumbs.db
 
-# Frontend build (rebuilt during deploy)
-frontend/dist
-
-# Large data files (not needed on Vercel)
-data/
-
 # Scripts and tests
 scripts
 tests
+
+# Large data files (not needed on Vercel)
+data/
 
 # Documentation
 *.md

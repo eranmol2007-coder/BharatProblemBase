@@ -66,7 +66,7 @@ def health():
     return {"status": "ok", "service": "BharatProblemBase"}
 
 
-if not IS_VERCEL and os.path.isdir(FRONTEND_DIR):
+if os.path.isdir(FRONTEND_DIR):
     app.mount("/assets", StaticFiles(directory=os.path.join(FRONTEND_DIR, "assets")), name="assets")
 
     @app.get("/{full_path:path}")

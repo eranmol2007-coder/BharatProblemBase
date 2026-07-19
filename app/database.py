@@ -11,13 +11,13 @@ except ImportError:
 IS_VERCEL = os.environ.get("VERCEL") == "1"
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-if IS_VERCEL and not DATABASE_URL:
-    raise RuntimeError("DATABASE_URL environment variable is required on Vercel")
-
 if not DATABASE_URL:
-    db_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
-    os.makedirs(db_dir, exist_ok=True)
-    DATABASE_URL = f"sqlite:///{os.path.join(db_dir, 'bharatproblembase.db')}"
+    if IS_VERCEL:
+        DATABASE_URL = "sqlite://"
+    else:
+        db_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
+        os.makedirs(db_dir, exist_ok=True)
+        DATABASE_URL = f"sqlite:///{os.path.join(db_dir, 'bharatproblembase.db')}"
 
 connect_args = {}
 if DATABASE_URL.startswith("sqlite"):

@@ -46,3 +46,5 @@ node_modules/
 
 # Frontend build
 frontend/dist/
+
+.vercel
